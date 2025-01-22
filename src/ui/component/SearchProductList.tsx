@@ -1,5 +1,5 @@
-import {ProductDto} from "../../data/Shop.Type.ts";
-import {Grid, Paper} from "@mui/material";
+import {ProductDto} from "../../data/product/Shop.Type.ts";
+import {Container, Grid, Paper} from "@mui/material";
 import {SearchProductCard} from "./SearchProductCard.tsx";
 
 
@@ -21,15 +21,16 @@ export const SearchProductList = ({products, searchString}: Props)=>{
                     // display: searchState ? 'block' : 'none',
                 }}
             >
-
-                <Grid container spacing={2}>
-                    {products.slice(0, 5).map(product => (
-                        product.name.toLowerCase().includes(searchString.toLowerCase())
-                        && <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={product.pid}>
-                            <SearchProductCard pid={product.pid} name={product.name} price={product.price} has_stock={product.has_stock} image_url={product.image_url}/>
-                        </Grid>
-                    ))}
-                </Grid>
+                <Container>
+                    <Grid container spacing={2}>
+                        {products.map((product) => (
+                            product.name.toLowerCase().includes(searchString.toLowerCase())
+                                && <Grid item xs={12} sm={12} md={6} lg={4} xl={3} key={product.pid}>
+                                    <SearchProductCard pid={product.pid} name={product.name} price={product.price} has_stock={product.has_stock} image_url={product.image_url}/>
+                                </Grid>
+                        ))}
+                    </Grid>
+                </Container>
 
             </Paper>
         )

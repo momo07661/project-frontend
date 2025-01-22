@@ -1,27 +1,37 @@
 import React, { useState } from 'react';
-import { Box, Card, CardActionArea, CardMedia} from '@mui/material';
+import {Box, Card, CardActionArea, CardMedia, useMediaQuery} from '@mui/material';
 import { styled } from '@mui/system';
 
 // Define styles for the magnifier container
 const ProductDetailMagnifier = styled(Box)({
     position: 'relative',
+    display: 'flex', // Ensure flex layout for positioning
     '&:hover $magnifier': {
-        display: 'block',
+        display: 'flex',
     },
 });
 
-// Define styles for the magnifier
-const Magnifier = styled(Box)({
-    position: 'absolute',
-    width: 400,
-    height: 400,
-    border: '1px solid #ccc',
-    backgroundSize: '700% 700%',
-    backgroundRepeat: 'no-repeat',
-});
 
 const ProductDetailMag = ({ imageSrc }: { imageSrc: string }) => {
     const [showMagnifier, setShowMagnifier] = useState(false);
+
+    const isWideScreen = useMediaQuery('(min-width:900px)');
+
+    const magnifierPositionQuery: () => { left: number, top: number, width: number, height: number } = () => {
+        return isWideScreen
+            ? { left: 400, top: 0, width: 380, height: 380 }
+            : { left: 0, top: 300, width: 300, height: 300 };
+    };
+
+    // Define styles for the magnifier
+    const Magnifier = styled(Box)({
+        position: 'absolute',
+        border: '1px solid #ccc',
+        backgroundSize: '300% 300%',
+        backgroundRepeat: 'no-repeat',
+        zIndex: 9999,
+        ...magnifierPositionQuery(),
+    });
 
     const handleMouseEnter = () => {
         setShowMagnifier(true);
@@ -48,7 +58,7 @@ const ProductDetailMag = ({ imageSrc }: { imageSrc: string }) => {
 
     return (
         <ProductDetailMagnifier onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                <Card sx={{ maxWidth: '100%', display:"flex"}}>
+                <Card sx={{ maxWidth: '100%'}}>
                     <CardActionArea>
                         <CardMedia
                             component="img"
@@ -59,7 +69,7 @@ const ProductDetailMag = ({ imageSrc }: { imageSrc: string }) => {
                     </CardActionArea>
 
                 </Card>
-                <Magnifier className="magnifier" id="magnifier" style={{ display: showMagnifier ? 'block' : 'none', backgroundImage: `url(${imageSrc})` }} />
+                <Magnifier className={"magnifier"} id="magnifier" style={{ display: showMagnifier ? 'block' : 'none', backgroundImage: `url(${imageSrc})`}} />
         </ProductDetailMagnifier>
     );
 };

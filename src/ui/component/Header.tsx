@@ -1,34 +1,78 @@
-import {AppBar, Toolbar, IconButton, Typography, InputBase, Badge, Box} from '@mui/material';
+import {
+    AppBar,
+    Toolbar,
+    IconButton,
+    Typography,
+    InputBase,
+    Badge,
+    Box,
+    Container,
+    Stack,
+    CircularProgress, useMediaQuery,
+} from '@mui/material';
+import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
 import {
     Search as SearchIcon,
     ShoppingCart as ShoppingCartIcon,
-    Favorite as FavoriteIcon,
 } from '@mui/icons-material';
-import {ProductDto, UserDto} from "../../data/Shop.Type.ts";
-import {Link} from "react-router-dom";
-import React, {useEffect, useState} from "react";
+import {ProductDto} from "../../data/product/Shop.Type.ts";
+import {Link, useNavigate} from "react-router-dom";
+import React, {useContext, useState} from "react";
 import * as ProductApi from "../../api/ProductApi.ts";
 import {SearchProductList} from "./SearchProductList.tsx";
+import logo from "../../../src/assets/snow pig.png"
+import {UserData} from "../../data/user/UserData.ts";
+import {LoginUserContext} from "../../context/LoginUserContext.ts";
+import * as FirebaseAuthService from "../../authService/FirebaseAuthService.ts"
+import {CartItemsContext} from "../../context/CartItemsContext.ts";
 
 
+const Header = () => {
+    const loginUser = useContext<UserData | null | undefined>(LoginUserContext);
+    const {cartQuantity} = useContext<{cartQuantity: number, fetchCartQuantityDto: ()=> void}>(CartItemsContext);
 
-const Header = ({pid}: UserDto) => {
-    const isUserLoggedIn: boolean = pid !== undefined;
+    const navigate = useNavigate();
+
+    const renderLoginUser = () =>{
+        if (loginUser){
+            return(
+                <Stack direction={"row"}>
+                    <Typography variant="body1" component="div" sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                        {loginUser.email.split("@", 1)}
+                    </Typography>
+                    <IconButton
+                        onClick={()=>{
+                            FirebaseAuthService.handleSignOut().then();
+                        }}
+                        color={"inherit"}
+                    >
+                        <LoginOutlinedIcon/>
+                    </IconButton>
+                </Stack>
+            )
+        }else if (loginUser === null){
+            return(
+                <IconButton
+                    size="large" aria-label="collection" color="inherit"
+                    component={Link}
+                    to={"/login/"}
+                >
+                    <LoginOutlinedIcon/>
+                </IconButton>
+            )
+        }else{
+            return(
+                <Box>
+                    <CircularProgress color={"inherit"}/>
+                </Box>
+            )
+        }
+    }
 
     const [isShowProductList, setIsShowProductList] = useState(false);
-    const [productDto, setProductDto] = useState<ProductDto[]>();
+    const [productDto, setProductDto] = useState<ProductDto[] | undefined>(undefined);
     const [searchString, setSearchString] = useState<string>("");
     // const [searchState, setSearchState] = useState<boolean>(false);
-
-    useEffect(()=>{
-        setProductDto(undefined)
-    }, [])
-
-
-
-    // const setDelaySearchString () =>{
-    //     setTimeout(setSearchString, 500)
-    // }
 
     const fetchAllProductDto = async () => {
         if (!productDto){
@@ -42,110 +86,189 @@ const Header = ({pid}: UserDto) => {
         }
     }
 
-    const reverseShowProductState = ()=>{
-        console.log(isShowProductList.toString())
-        setIsShowProductList(!isShowProductList)
-    }
+    // const reverseShowProductState = ()=>{
+    //     console.log(isShowProductList.toString())
+    //     setIsShowProductList(!isShowProductList)
+    // }
 
     const onFocusSearchBar = () =>{
         try{
             fetchAllProductDto().then();
-            reverseShowProductState();
+            // reverseShowProductState();
         }catch(error){
             console.log("error in fetching product list in search bar")
         }
     }
 
     const onInputBlurred = () =>{
+        //  const temTimeout = setTimeout(()=>{
+        //      if (isShowProductList){
+        //          reverseShowProductState();
+        //      }
+        // }, 500);
+        // return clearTimeout(temTimeout)
         setTimeout(()=>{
-            reverseShowProductState()
-        }, 500)
-
+            if (isShowProductList){
+                setIsShowProductList(false)
+            }
+        }, 500);
     }
 
     const onChangeInput = ( event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setTimeout(()=>{
-            setSearchString(event.target.value)
-        }, 500)
+        setSearchString(event.target.value)
+        if (!isShowProductList){
+            setIsShowProductList(true);
+        }
     }
 
+    const handleSubmitToSearching = ()=>{
+        console.log("?")
+        searchString && navigate(`/search/${searchString}`)
+    }
+
+    const isWideScreen = useMediaQuery('(min-width:840px)');
+
     return (
-        <AppBar position="sticky" sx={{backgroundColor: "#883f1c", color: "rgba(250, 250, 250, 2)", borderBottomLeftRadius: 10, borderBottomRightRadius: 10, mb: 1}}>
+        <AppBar position="sticky" sx={{backgroundColor: "#ffffff", color: "#000000", borderBottomLeftRadius: 1, borderBottomRightRadius: 1}}>
             <Toolbar sx={{ justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {/* Shop logo */}
-                    <Typography variant="h6" component="div" sx={{ mr: 2 }}>
-                        Your Shop Logo
-                    </Typography>
+                {
+                    isWideScreen
+                        ?<Container sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                {/* Shop logo */}
+                                <Box
+                                    component={Link}
+                                    to={"/"}
+                                >
+                                    <img src={logo} alt="logo: snowpig"/>
+                                </Box>
+                            </Box>
 
-                    {/* What's New and News links */}
-                    <Typography
-                        variant="body1"
-                        component={Link}
-                        to="/whatsnew"
-                        sx={{ display: 'flex', alignItems: 'center', ml: 2, textDecoration: 'none', color: 'inherit' }}
-                    >
-                        What's New
-                    </Typography>
-                    <Typography
-                        variant="body1"
-                        component={Link}
-                        to="/news"
-                        sx={{ display: 'flex', alignItems: 'center', ml: 2, textDecoration: 'none', color: 'inherit' }}
-                    >
-                        News
-                    </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                {/* Search bar */}
+                                <Box>
+                                    <InputBase
+                                        sx={{color: "inherit", backgroundColor: "#e4e2e2", borderRadius: 3, px: 1, border: "solid 1px rgba()"}}
+                                        placeholder="Search…"
+                                        inputProps={{ 'aria-label': 'search' }}
+                                        onFocus={onFocusSearchBar}
+                                        onBlur={onInputBlurred}
+                                        onChange={onChangeInput}
+                                        onKeyUp={(event) => {
+                                            if (event.key === "Enter") {
+                                                handleSubmitToSearching();
+                                                setSearchString("")
+                                            }
+                                        }}
+                                        value={searchString??" "}
+                                    />
+                                    <IconButton
+                                        size="large"
+                                        aria-label="search"
+                                        color="inherit"
+                                        onClick={handleSubmitToSearching}
+                                    >
+                                        <SearchIcon />
+                                    </IconButton>
 
-                </Box>
+                                    {/* ProductList component */}
+                                    {
+                                        productDto && isShowProductList && <SearchProductList products={productDto} searchString={searchString}/>
+                                    }
 
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {/* Search bar */}
-                    <Box>
-                        <InputBase
-                            sx={{color: "inherit", backgroundColor: "#ab7961", borderRadius: 3, px: 1, border: "solid 1px rgba()"}}
-                            placeholder="Search…"
-                            inputProps={{ 'aria-label': 'search' }}
-                            onFocus={onFocusSearchBar}
-                            onBlur={onInputBlurred}
-                            onChange={onChangeInput}
-                        />
-                        <IconButton size="large" aria-label="search" color="inherit">
-                            <SearchIcon />
-                        </IconButton>
+                                </Box>
 
-                        {/* ProductList component */}
-                        {
-                            productDto && isShowProductList && <SearchProductList products={productDto} searchString={searchString}/>
-                        }
+                                {/* Shopping cart icon */}
+                                <IconButton
+                                    size="large"
+                                    aria-label="shopping cart"
+                                    color="inherit"
+                                    component={Link}
+                                    to={"/shoppingcart/"}
+                                >
 
-                    </Box>
+                                    <Badge badgeContent={cartQuantity} color="error">
+                                        <ShoppingCartIcon />
+                                    </Badge>
+                                </IconButton>
 
-                    {/* Shopping cart icon */}
-                    <IconButton size="large" aria-label="shopping cart" color="inherit">
-                        <Badge badgeContent={4} color="error">
-                            <ShoppingCartIcon />
-                        </Badge>
-                    </IconButton>
+                                {/*/!* Collection button *!/*/}
+                                {/*<IconButton size="large" aria-label="collection" color="inherit">*/}
+                                {/*    <FavoriteIcon />*/}
+                                {/*</IconButton>*/}
 
-                    {/* Collection button */}
-                    <IconButton size="large" aria-label="collection" color="inherit">
-                        <FavoriteIcon />
-                    </IconButton>
+                                {/* User information or login button */}
+                                {/* Assume isUserLoggedIn is a boolean indicating whether the user is logged in */}
+                                {renderLoginUser()}
+                            </Box>
+                        </Container>
 
-                    {/* User information or login button */}
-                    {/* Assume isUserLoggedIn is a boolean indicating whether the user is logged in */}
-                    {isUserLoggedIn ? (
-                        <Typography variant="body1" component="div" sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                            Welcome, Username
-                        </Typography>
-                    ) : (
-                        <Typography variant="body1" component="div" sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                            Login
-                        </Typography>
-                    )}
-                </Box>
+                        : <Container sx={{ display: 'flex', alignItems: 'center', justifyContent: "space-between"}}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {/* Shop logo */}
+                            <Box
+                                component={Link}
+                                to={"/"}
+                            >
+                                <img height={"20px"} src={logo} alt="logo: snowpig"/>
+                            </Box>
+                        </Box>
 
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {/* Search bar */}
+                            <Box>
+                                {/*<InputBase*/}
+                                {/*    sx={{color: "inherit", backgroundColor: "#e4e2e2", borderRadius: 3, px: 1, border: "solid 1px rgba()"}}*/}
+                                {/*    placeholder="Search…"*/}
+                                {/*    inputProps={{ 'aria-label': 'search' }}*/}
+                                {/*    onFocus={onFocusSearchBar}*/}
+                                {/*    onBlur={onInputBlurred}*/}
+                                {/*    onChange={onChangeInput}*/}
+                                {/*    onKeyUp={(event) => {*/}
+                                {/*        if (event.key === "Enter") {*/}
+                                {/*            handleSubmitToSearching();*/}
+                                {/*        }*/}
+                                {/*    }}*/}
+                                {/*    // onSubmit={handleSubmitToSearching}*/}
+                                {/*/>*/}
+                                <InputBase
+                                    sx={{color: "inherit", backgroundColor: "#e4e2e2", borderRadius: 3, px: 1, border: "solid 1px rgba()"}}
+                                    placeholder="Search…"
+                                    inputProps={{ 'aria-label': 'search' }}
+                                    onFocus={onFocusSearchBar}
+                                    onBlur={onInputBlurred}
+                                    onChange={onChangeInput}
+                                    onKeyUp={(event) => {
+                                        if (event.key === "Enter") {
+                                            handleSubmitToSearching();
+                                            setSearchString("")
+                                        }
+                                    }}
+                                    value={searchString??" "}
+                                />
+                                {
+                                    productDto && isShowProductList && <SearchProductList products={productDto} searchString={searchString}/>
+                                }
 
+                            </Box>
+
+                            {/* Shopping cart icon */}
+                            <IconButton
+                                size="small"
+                                aria-label="shopping cart"
+                                color="inherit"
+                                component={Link}
+                                to={"/shoppingcart/"}
+                            >
+
+                                <Badge badgeContent={cartQuantity} color="error">
+                                    <ShoppingCartIcon />
+                                </Badge>
+                            </IconButton>
+                            {renderLoginUser()}
+                        </Box>
+                    </Container>
+                }
             </Toolbar>
         </AppBar>
     );

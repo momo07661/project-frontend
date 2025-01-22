@@ -1,5 +1,5 @@
 import {Card, CardActionArea, CardContent, CardMedia, Typography} from "@mui/material";
-import {ProductDto} from "../../data/Shop.Type.ts";
+import {ProductDto} from "../../data/product/Shop.Type.ts";
 import "./styleComponent.css";
 import {useNavigate} from 'react-router-dom';
 
@@ -11,6 +11,7 @@ export const ProductCard = ({
                          image_url,
                          has_stock
 }: ProductDto) => {
+
     const navigate = useNavigate();
     const redirectToProductDetailPage = ()=>{
         navigate("/product/" + pid);
@@ -19,16 +20,10 @@ export const ProductCard = ({
     return (
         <Card
             className={"b4"}
-            sx={{backgroundColor: "rgba(252, 252, 252, 0.9)", p: 1,}}
+            sx={{backgroundColor: "#ffffff", boxShadow: 0}}
             onClick={redirectToProductDetailPage}
 
         >
-            {
-                has_stock
-                    ? <div></div>
-                    : <div>{pid}</div>
-            }
-
             <CardActionArea>
                 <CardMedia
                     component="img"
@@ -39,9 +34,9 @@ export const ProductCard = ({
                 />
 
                 <CardContent
-                    style={{color: "rgba(64, 72, 74, 1)",}}
+                    style={{color: "rgba(64, 72, 74, 1)"}}
                 >
-                    <Typography gutterBottom variant="h5" component="div" sx={{
+                    <Typography gutterBottom variant="body1" component="div" sx={{
                         textDecoration: 'none',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -49,8 +44,12 @@ export const ProductCard = ({
                     }}>
                         {name}
                     </Typography>
-                    <Typography variant="body2" component="p" sx={{textDecoration: 'none'}}>
-                        Price: {price}
+                    <Typography variant="body2" component="p" sx={{color: "#ff5353"}}>
+                        {
+                            has_stock
+                                ? "Price: " + price
+                                : "Sold Out"
+                        }
                     </Typography>
                 </CardContent>
             </CardActionArea>

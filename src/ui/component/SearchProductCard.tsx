@@ -1,5 +1,5 @@
 import {Card, CardActionArea, CardContent, CardMedia, Typography} from "@mui/material";
-import {ProductDto} from "../../data/Shop.Type.ts";
+import {ProductDto} from "../../data/product/Shop.Type.ts";
 import "./styleComponent.css";
 import {useNavigate} from 'react-router-dom';
 
@@ -13,6 +13,7 @@ export const SearchProductCard = ({
 }: ProductDto) => {
     const navigate = useNavigate();
     const redirectToProductDetailPage = ()=>{
+        console.log(pid)
         navigate("/product/" + pid);
     }
 
@@ -22,11 +23,6 @@ export const SearchProductCard = ({
             sx={{backgroundColor: "rgba(252, 252, 252, 0.9)", p: 1}}
             onClick={redirectToProductDetailPage}
         >
-            {
-                has_stock
-                    ? <div></div>
-                    : <div>{pid}</div>
-            }
 
             <CardActionArea>
                 <CardMedia
@@ -49,7 +45,11 @@ export const SearchProductCard = ({
                         {name}
                     </Typography>
                     <Typography variant="body2" component="p" sx={{textDecoration: 'none'}}>
-                        Price: {price}
+                        {
+                            has_stock
+                                ? "Price: " + price.toLocaleString()
+                                : "Out of Stock"
+                        }
                     </Typography>
                 </CardContent>
             </CardActionArea>
